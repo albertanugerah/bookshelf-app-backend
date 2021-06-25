@@ -75,14 +75,54 @@ const addBookHandler = (request, h) => {
 };
 
 const getBooksHandler = (request, h) => {
+  // query parameter
+  const { name, reading, finished } = request.query;
+  if (name !== undefined) {
+    books.filter((book) => book.name.toLowerCase().includes(name.toLowerCase));
+  }
+  if (reading !== undefined) {
+    books.filter((book) => book.reading === !!Number(reading));
+  }
+  if (finished !== undefined) {
+    books.filter((book) => book.finished === !!Number(finished));
+  }
+
+  // response
   const response = h.response({
     status: 'success',
     data: {
-      books,
+      books: books.map((book) => ({
+        id: book.id,
+        name: book.name,
+        publisher: book.publisher,
+      })),
     },
   });
   response.status(200);
   return response;
 };
 
-module.exports = { addBookHandler, getBooksHandler };
+const getBookByIdHandler = (request, h) => {
+  const { id } = request.params;
+  const book = books.filter((b) => b.id === id)[0];
+
+  if (book !== undefined) {
+    const response = h.response({
+      status: 'success',
+      data: {
+        book,
+      },
+    });
+    response.status(200);
+    return response;
+  }
+
+  const response = h.response({
+    status: 'fail',
+    message: 'Buku tidak ditemukan',
+  });
+  response.code(404);
+  return response;
+};
+
+module.exports = { addBookHandler, getBooksHandler, getBookByIdHandler };
